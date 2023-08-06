@@ -12,7 +12,7 @@ int provide_address_gas_consumption() asm "10000000 PUSHINT";
     return (
             ds~load_coins(), ;; total_supply
             ds~load_msg_addr(), ;; admin_address
-            ds~load_ref(), ;; content
+            ds~load_ref(), ;; Can I add the token name, symbol, and decimals here ?
             ds~load_ref() ;; jetton_wallet_code
     );
 }
@@ -28,7 +28,8 @@ int provide_address_gas_consumption() asm "10000000 PUSHINT";
 }
 
 () mint_tokens(slice to_address, cell jetton_wallet_code, int amount, cell master_msg) impure {
-    cell state_init = calculate_jetton_wallet_state_init(to_address, my_address(), jetton_wallet_code);
+    ;; calculate_jetton_wallet_state_init(owner address, jetton master address, jetton wallet code)
+    cell state_init = c(to_address, my_address(), jetton_wallet_code);
     slice to_wallet_address = calculate_jetton_wallet_address(state_init);
     var msg = begin_cell()
             .store_uint(0x18, 6)
@@ -63,7 +64,7 @@ int provide_address_gas_consumption() asm "10000000 PUSHINT";
     (int total_supply, slice admin_address, cell content, cell jetton_wallet_code) = load_data();
 
     if (op == op::mint()) {
-        throw_unless(73, equal_slices(sender_address, admin_address));
+        throw_unless(73, equal_slices(sender_address, admin_address)); ;; only admin can mint
         slice to_address = in_msg_body~load_msg_addr();
         int amount = in_msg_body~load_coins();
         cell master_msg = in_msg_body~load_ref();
